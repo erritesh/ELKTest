@@ -1,0 +1,18 @@
+<dashboard script="autodiscover.js">
+  <label>Browser Info</label>
+   <row>
+    <panel>
+      <table>
+        <title>Brwoser Info</title>
+        <search>
+          <query>| savedsearch Browser_Info get_useragent="$form.get_useragent$"</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="drilldown">row</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

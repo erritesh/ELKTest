@@ -1,0 +1,14 @@
+<nav color="#36A749" >
+  <view name="home" label="Home" default='true' />
+  <view name="about_us" label="About Us" />
+  <collection label="Capacity Management">
+	   <view name="User_Access" label="Browsing History"/>	   
+	</collection>
+	<collection label="Threat Management">
+	   <view name="Access_History" label="Access Infromation"/>
+	   <view name="User_Information" label="User Infromation"/>
+	</collection>
+  <view name="alerts" label="Alerts"/>
+  <view name="reports" label="Reports"/>
+  <view name="search" label="Search"/>
+</nav>

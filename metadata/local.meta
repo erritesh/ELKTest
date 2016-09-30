@@ -1,0 +1,67 @@
+
+[views/user_access]
+version = 6.3.1
+modtime = 1461043987.792155400
+
+[inputs/rest%3A%2F%2FIP%20tracker]
+owner = admin
+version = 6.3.1
+modtime = 1460702418.311655500
+
+[inputs/script%3A%2F%2F%24SPLUNK_HOME%5Cetc%5Capps%5Cweb_analytics%5Cbin%5CgenerateIPDetails.py]
+owner = admin
+version = 6.3.1
+modtime = 1460709451.948362100
+
+[inputs/script%3A%2F%2F%24SPLUNK_HOME%5Cetc%5Capps%5Cweb_analytics%5Cbin%5CgenerateIPDetails.py%20clientip]
+version = 6.3.1
+modtime = 1460709551.446053000
+
+[app/install/install_source_checksum]
+version = 6.3.1
+modtime = 1460968324.032995900
+
+[views/Access_History]
+version = 6.4.2
+modtime = 1469180343.424903000
+
+[savedsearches/User_Savedsearch]
+access = read : [ admin ], write : [ admin ]
+export = none
+owner = admin
+version = 6.3.1
+modtime = 1461062531.326944200
+
+[views/User_Access]
+version = 6.4.2
+modtime = 1470052322.483181000
+
+[views/User_Information]
+version = 6.4.2
+modtime = 1469179735.043709000
+
+[views/Browser_info]
+version = 6.4.0
+modtime = 1461829494.270507800
+
+[savedsearches/Browser_Info]
+access = read : [ admin ], write : [ admin ]
+export = none
+owner = admin
+version = 6.4.0
+modtime = 1461831252.160156200
+
+[indexes/ldap]
+owner = admin
+version = 6.4.0
+modtime = 1461848716.311523400
+
+[indexes/log_review]
+owner = admin
+version = 6.4.0
+modtime = 1461907942.309570300
+
+[inputs/monitor%3A%2F%2FC%3A%5CProgram%20Files%5CSplunk%5Cetc%5Capps%5Cweb_analytics%5Cappserver%5Cstatic%5Caccess_log]
+owner = admin
+version = 6.4.0
+modtime = 1461907949.472656200

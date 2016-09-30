@@ -1,0 +1,58 @@
+<form script="autodiscover.js">
+  <label>Access History - World Map</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="dropdown" token="get_domain" searchWhenChanged="false">
+      <label>Select Domain</label>
+      <search>
+        <query>index=vedic | top limit=25 referer_domain</query>
+      </search>
+      <fieldForLabel>referer_domain</fieldForLabel>
+      <fieldForValue>referer_domain</fieldForValue>
+    </input>
+    <input type="dropdown" token="get_country" searchWhenChanged="true">
+      <label>Select Country</label>
+      <search>
+        <query>index=vedic referer_domain=$get_domain$ |iplocation clientip| stats count by Country lat lon| where Country!=""| dedup Country | table Country, lat, lon</query>
+      </search>
+      <fieldForLabel>Country</fieldForLabel>
+      <fieldForValue>Country</fieldForValue>
+      <change>
+        <set token="lat_tok">$row.lat$</set>
+        <set token="lon_tok">$row.lon$</set>
+      </change>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <map>
+        <title>Website accessed across the world</title>
+        <search>
+          <query>index=vedic referer_domain="$get_domain$" | iplocation clientip allfields=true | where Country="$get_country$" | geostats count by clientip globallimit=10000</query>
+        </search>
+        <option name="mapping.map.center">($lat_tok$,$lon_tok$)</option>
+        <option name="mapping.choroplethLayer.colorBins">5</option>
+        <option name="mapping.choroplethLayer.colorMode">auto</option>
+        <option name="mapping.choroplethLayer.maximumColor">0xDB5800</option>
+        <option name="mapping.choroplethLayer.minimumColor">0x2F25BA</option>
+        <option name="mapping.choroplethLayer.shapeOpacity">0.75</option>
+        <option name="mapping.choroplethLayer.showBorder">1</option>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.drilldown">all</option>
+        <option name="mapping.map.scrollZoom">true</option>
+        <option name="mapping.map.zoom">5</option>
+        <option name="mapping.markerLayer.markerMaxSize">50</option>
+        <option name="mapping.markerLayer.markerMinSize">10</option>
+        <option name="mapping.markerLayer.markerOpacity">0.8</option>
+        <option name="mapping.showTiles">1</option>
+        <option name="mapping.tileLayer.maxZoom">19</option>
+        <option name="mapping.tileLayer.minZoom">0</option>
+        <option name="mapping.tileLayer.tileOpacity">1</option>
+        <option name="mapping.type">marker</option>
+        <option name="drilldown">all</option>
+        <option name="mapping.choroplethLayer.neutralPoint">0</option>
+        <option name="mapping.map.panning">true</option>
+        <option name="mapping.tileLayer.url">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+      </map>
+    </panel>
+  </row>
+</form>

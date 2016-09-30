@@ -1,0 +1,138 @@
+<form script="autodiscover.js,table_drilldown_url_field.js">
+  <label>User Access</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="dropdown" token="get_user" searchWhenChanged="true">
+      <change>
+        <unset token="form.get_domain"></unset>
+        <unset token="form.get_module"></unset>
+        <unset token="form.get_status"></unset>
+        <unset token="form.get_country"></unset>
+      </change>
+      <label>Select User</label>
+      <search>
+        <query>|inputlookup user.csv</query>
+        <earliest>0</earliest>
+        <latest>now</latest>
+      </search>
+      <default>akshay</default>
+      <fieldForLabel>username</fieldForLabel>
+      <fieldForValue>user</fieldForValue>
+    </input>
+    <input type="dropdown" token="get_domain">
+      <selectFirstChoice>true</selectFirstChoice>
+      <change>
+        <unset token="form.get_module"></unset>
+        <unset token="form.get_status"></unset>
+        <unset token="form.get_country"></unset>
+      </change>
+      <label>Select Domain</label>
+      <search>
+        <query>index=vedic user=$get_user$ | stats  count by referer_domain</query>
+      </search>
+      <fieldForLabel>referer_domain</fieldForLabel>
+      <fieldForValue>referer_domain</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_module">
+      <selectFirstChoice>true</selectFirstChoice>
+      <change>
+        <unset token="form.get_status"></unset>
+        <unset token="form.get_country"></unset>
+      </change>
+      <label>Select a module</label>
+      <search>
+        <query>index=vedic  user=$get_user$ referer_domain="$get_domain$" root=* | dedup root | table root</query>
+        <earliest>0</earliest>
+      </search>
+      <fieldForLabel>root</fieldForLabel>
+      <fieldForValue>root</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_status">
+      <selectFirstChoice>true</selectFirstChoice>
+      <change>
+        <unset token="form.get_country"></unset>
+      </change>
+      <label>Response</label>
+      <search>
+        <query>index=vedic user=$get_user$ referer_domain=$get_domain$ root=$get_module$ | stats count by status_description status | eval Status_Field=status."-".status_description |table Status_Field status count | sort status</query>
+        <earliest>0</earliest>
+      </search>
+      <fieldForLabel>Status_Field</fieldForLabel>
+      <fieldForValue>status</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_country" searchWhenChanged="true">
+      <selectFirstChoice>true</selectFirstChoice>
+      <label>Select Country</label>
+      <search>
+        <query>index=vedic user=$get_user$ referer_domain=$get_domain$ root=$get_module$  status=$get_status$ |iplocation clientip| stats count by Country lat lon| dedup Country | table Country, lat, lon</query>
+        <earliest>0</earliest>
+      </search>
+      <fieldForLabel>Country</fieldForLabel>
+      <fieldForValue>Country</fieldForValue>
+      <change>
+        <set token="lat_tok">$row.lat$</set>
+        <set token="lon_tok">$row.lon$</set>
+      </change>
+    </input>
+    <input type="time" token="get_time" searchWhenChanged="false">
+      <label></label>
+      <default>
+        <earliest>0</earliest>
+        <latest></latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table id="link">
+        <title>Users Browsing History</title>
+        <search>
+          <query>index=vedic method=* referer_domain=$get_domain$ user=$get_user$ status=$get_status$ root="$get_module$" http:// | eval link=referer | eval megabytes=((bytes/1024)/1024)| eval brow_info="http://localhost:8000/en-US/app/web_analytics/Browser_info?form.get_useragent="+useragent | eval root=coalesce(root," ")  | iplocation clientip allfields=true  | where Country="$get_country$" | eventstats  count by referer root req_time  status_type useragent|rename root as Module req_time as "Time Visited" useragent as "Browser Used" referer as "Page Visited" megabytes as "Size in mb" | table  "Time Visited" clientip Module "Page Visited" link status Region City  Country "Size in mb" brow_info count</query>
+          <earliest>$get_time.earliest$</earliest>
+          <latest>$get_time.latest$</latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="drilldown">none</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <map>
+        <title>Paticular User access across the world</title>
+        <search>
+          <query>index=vedic user=$get_user$ referer_domain=$get_domain$ | iplocation clientip|geostats count by referer_domain</query>
+          <earliest>$get_time.earliest$</earliest>
+          <latest>$get_time.latest$</latest>
+        </search>
+        <option name="mapping.map.center">($lat_tok$,$lon_tok$)</option>
+        <option name="mapping.choroplethLayer.colorBins">5</option>
+        <option name="mapping.choroplethLayer.colorMode">auto</option>
+        <option name="mapping.choroplethLayer.maximumColor">0xDB5800</option>
+        <option name="mapping.choroplethLayer.minimumColor">0x2F25BA</option>
+        <option name="mapping.choroplethLayer.shapeOpacity">0.75</option>
+        <option name="mapping.choroplethLayer.showBorder">1</option>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.drilldown">all</option>
+        <option name="mapping.map.scrollZoom">true</option>
+        <option name="mapping.map.zoom">7</option>
+        <option name="mapping.markerLayer.markerMaxSize">50</option>
+        <option name="mapping.markerLayer.markerMinSize">10</option>
+        <option name="mapping.markerLayer.markerOpacity">0.8</option>
+        <option name="mapping.showTiles">1</option>
+        <option name="mapping.tileLayer.maxZoom">9</option>
+        <option name="mapping.tileLayer.minZoom">0</option>
+        <option name="mapping.tileLayer.tileOpacity">1</option>
+        <option name="mapping.type">marker</option>
+        <option name="drilldown">all</option>
+        <option name="mapping.choroplethLayer.neutralPoint">0</option>
+        <option name="mapping.map.panning">true</option>
+      </map>
+    </panel>
+  </row>
+</form>

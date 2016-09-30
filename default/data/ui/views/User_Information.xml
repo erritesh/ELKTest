@@ -1,0 +1,111 @@
+<form script="autodiscover.js">
+  <label>User Access</label>
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="get_domain" searchWhenChanged="true">
+      <label>Select Domain</label>
+      <search>
+        <query>index=data_access    | stats  count by referer_domain</query>
+      </search>
+      <fieldForLabel>referer_domain</fieldForLabel>
+      <fieldForValue>referer_domain</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_user" searchWhenChanged="true">
+      <label>Select User</label>
+      <search>
+        <query>index=data_access    referer_domain="$get_domain$" | eval user_guest=if(user == "-" or user == "\"\"", "Guest",user)      | stats  count by user_guest user</query>
+        <earliest>0</earliest>
+      </search>
+      <fieldForLabel>user_guest</fieldForLabel>
+      <fieldForValue>user</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_status">
+      <label>Status</label>
+      <search>
+        <query>index=data_access  user=$get_user$ referer_domain=$get_domain$ |eval statuses= case(status == 302, "Found", status == 304, "Not Modified", status == 401, "Unauthorized", status == 403, "Forbidden", status == 404, "Not Found", status == 408, "Request Timeout", status == 200, "OK", status == 400, "Bad Request", status == 405, "Method Not Allowed", status == 500, "Internal Server Error")| stats  count by statuses status</query>
+        <earliest>0</earliest>
+      </search>
+      <fieldForLabel>statuses</fieldForLabel>
+      <fieldForValue>status</fieldForValue>
+      <choice value="*">All</choice>
+    </input>
+    <input type="dropdown" token="get_country">
+      <label>Select Country</label>
+      <search>
+        <query>index=data_access $get_domain$ $get_user$ $get_status$ | iplocation clientip allfields=true | dedup Country |table Country</query>
+      </search>
+      <fieldForLabel>Country</fieldForLabel>
+      <fieldForValue>Country</fieldForValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>Visited Pages</title>
+        <search>
+          <query>index=data_access method=GET referer_domain=$get_domain$ user=$get_user$ status=$get_status$  |eval status= case(status == 302, "Found", status == 304, "Not Modified", status == 401, "Unauthorized", status == 403, "Forbidden", status == 404, "Not Found", status == 408, "Request Timeout", status == 200, "OK", status == 400, "Bad Request", status == 405, "Method Not Allowed", status == 500, "Internal Server Error") | eval root=coalesce(root," ")  | eval Site=referer  | iplocation clientip allfields=true  | where Country="$get_country$"| eventstats count  by Site| table  req_time Site  count status Region City Continent Country useragent</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="drilldown">cell</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <map>
+        <search>
+          <query>index=data_access user=$get_user$ referer_domain=$get_domain$ status=$get_status$ | table clientip , referer_domain,status |iplocation clientip|geostats latfield=lat longfield=lon count(clientip) by referer_domain</query>
+        </search>
+        <!--change>
+          <set token="lat_tok">$row.latfield$</set>
+          <set token="lat_tok">$row.longfield$</set>
+        </change-->
+        <option name="mapping.type">marker</option>
+        <option name="mapping.map.center">(row.lat,row.long)</option>
+        <option name="mapping.choroplethLayer.colorBins">5</option>
+        <option name="mapping.choroplethLayer.colorMode">auto</option>
+        <option name="mapping.choroplethLayer.maximumColor">0xDB5800</option>
+        <option name="mapping.choroplethLayer.minimumColor">0x2F25BA</option>
+        <option name="mapping.choroplethLayer.neutralPoint">0</option>
+        <option name="mapping.choroplethLayer.shapeOpacity">0.75</option>
+        <option name="mapping.choroplethLayer.showBorder">1</option>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.drilldown">all</option>
+        <option name="mapping.map.center">(0,0)</option>
+        <option name="mapping.map.panning">true</option>
+        <option name="mapping.map.scrollZoom">false</option>
+        <option name="mapping.map.zoom">2</option>
+        <option name="mapping.markerLayer.markerMaxSize">50</option>
+        <option name="mapping.markerLayer.markerMinSize">10</option>
+        <option name="mapping.markerLayer.markerOpacity">0.8</option>
+        <option name="mapping.showTiles">1</option>
+        <option name="mapping.tileLayer.maxZoom">7</option>
+        <option name="mapping.tileLayer.minZoom">0</option>
+        <option name="mapping.tileLayer.tileOpacity">1</option>
+        <option name="drilldown">all</option>
+      </map>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Item sales by its Product | Category wise relation</title>
+      <html>
+           
+		
+            <div id="customsearch1" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                         &quot;search&quot;: { &quot;type&quot;: &quot;token_safe&quot;, &quot;value&quot;: &quot;index=data_access nandini | eval user_agent =if(useragent == '-', 'Other',useragent )| dedup user_agent | stats  count by user_agent&quot; },                                                &quot;earliest_time&quot;: { &quot;type&quot;: &quot;token_safe&quot;, &quot;value&quot;: &quot;$$earliest$$&quot; },                         &quot;latest_time&quot;: { &quot;type&quot;: &quot;token_safe&quot;, &quot;value&quot;: &quot;$$latest$$&quot; }}">
+             </div>
+ 
+            <div align="center" valign="middle" id="getBrowserInfo" class="splunk-view" data-require="app/web_analytics/components/piechart/piechart" data-options="{                         &quot;managerid&quot;: &quot;customsearch1&quot;                     }">
+            </div>
+          	
+         
+        </html>
+    </panel>
+  </row>
+</form>
